@@ -1,0 +1,116 @@
+WARNING: --write-unchanged-files/-W implies -w.
+RefactoringTool: Adding transformation: apply
+RefactoringTool: Adding transformation: asserts
+RefactoringTool: Adding transformation: basestring
+RefactoringTool: Skipping optional fixer: buffer
+RefactoringTool: Adding transformation: dict
+RefactoringTool: Adding transformation: except
+RefactoringTool: Adding transformation: exec
+RefactoringTool: Adding transformation: execfile
+RefactoringTool: Adding transformation: exitfunc
+RefactoringTool: Adding transformation: filter
+RefactoringTool: Adding transformation: funcattrs
+RefactoringTool: Adding transformation: future
+RefactoringTool: Adding transformation: getcwdu
+RefactoringTool: Adding transformation: has_key
+RefactoringTool: Adding transformation: idioms
+RefactoringTool: Adding transformation: import
+RefactoringTool: Adding transformation: imports
+RefactoringTool: Adding transformation: imports2
+RefactoringTool: Adding transformation: input
+RefactoringTool: Adding transformation: intern
+RefactoringTool: Adding transformation: isinstance
+RefactoringTool: Adding transformation: itertools
+RefactoringTool: Adding transformation: itertools_imports
+RefactoringTool: Adding transformation: long
+RefactoringTool: Adding transformation: map
+RefactoringTool: Adding transformation: metaclass
+RefactoringTool: Adding transformation: methodattrs
+RefactoringTool: Adding transformation: ne
+RefactoringTool: Adding transformation: next
+RefactoringTool: Adding transformation: nonzero
+RefactoringTool: Adding transformation: numliterals
+RefactoringTool: Adding transformation: operator
+RefactoringTool: Adding transformation: paren
+RefactoringTool: Adding transformation: print
+RefactoringTool: Adding transformation: raise
+RefactoringTool: Adding transformation: raw_input
+RefactoringTool: Adding transformation: reduce
+RefactoringTool: Adding transformation: reload
+RefactoringTool: Adding transformation: renames
+RefactoringTool: Adding transformation: repr
+RefactoringTool: Skipping optional fixer: set_literal
+RefactoringTool: Adding transformation: standarderror
+RefactoringTool: Adding transformation: sys_exc
+RefactoringTool: Adding transformation: throw
+RefactoringTool: Adding transformation: tuple_params
+RefactoringTool: Adding transformation: types
+RefactoringTool: Adding transformation: unicode
+RefactoringTool: Adding transformation: urllib
+RefactoringTool: Skipping optional fixer: ws_comma
+RefactoringTool: Adding transformation: xrange
+RefactoringTool: Adding transformation: xreadlines
+RefactoringTool: Adding transformation: zip
+RefactoringTool: Descending into django_select2
+RefactoringTool: Refactoring django_select2/__init__.py
+RefactoringTool: Refactored django_select2/__init__.py
+RefactoringTool: Wrote changes to django_select2/__init__.py
+RefactoringTool: Refactoring django_select2/db_client.py
+RefactoringTool: Refactored django_select2/db_client.py
+RefactoringTool: Wrote changes to django_select2/db_client.py
+RefactoringTool: Refactoring django_select2/fields.py
+RefactoringTool: Refactored django_select2/fields.py
+RefactoringTool: Wrote changes to django_select2/fields.py
+RefactoringTool: Refactoring django_select2/media.py
+RefactoringTool: No changes to django_select2/media.py
+RefactoringTool: No changes to django_select2/media.py
+RefactoringTool: Wrote changes to django_select2/media.py
+RefactoringTool: Refactoring django_select2/memcache_client.py
+RefactoringTool: Refactored django_select2/memcache_client.py
+RefactoringTool: Wrote changes to django_select2/memcache_client.py
+RefactoringTool: Refactoring django_select2/memcache_wrapped_db_client.py
+RefactoringTool: Refactored django_select2/memcache_wrapped_db_client.py
+RefactoringTool: Wrote changes to django_select2/memcache_wrapped_db_client.py
+RefactoringTool: Refactoring django_select2/models.py
+RefactoringTool: Refactored django_select2/models.py
+RefactoringTool: Wrote changes to django_select2/models.py
+RefactoringTool: Refactoring django_select2/urls.py
+RefactoringTool: Refactored django_select2/urls.py
+RefactoringTool: Wrote changes to django_select2/urls.py
+RefactoringTool: Refactoring django_select2/util.py
+RefactoringTool: Refactored django_select2/util.py
+RefactoringTool: Wrote changes to django_select2/util.py
+RefactoringTool: Refactoring django_select2/views.py
+RefactoringTool: Refactored django_select2/views.py
+RefactoringTool: Wrote changes to django_select2/views.py
+RefactoringTool: Refactoring django_select2/widgets.py
+RefactoringTool: Refactored django_select2/widgets.py
+RefactoringTool: Wrote changes to django_select2/widgets.py
+RefactoringTool: Descending into django_select2/__pycache__
+RefactoringTool: Descending into django_select2/static
+RefactoringTool: Descending into django_select2/static/django_select2
+RefactoringTool: Descending into django_select2/static/django_select2/css
+RefactoringTool: Descending into django_select2/static/django_select2/js
+RefactoringTool: Descending into django_select2/templatetags
+RefactoringTool: Refactoring django_select2/templatetags/__init__.py
+RefactoringTool: No changes to django_select2/templatetags/__init__.py
+RefactoringTool: No changes to django_select2/templatetags/__init__.py
+RefactoringTool: Wrote changes to django_select2/templatetags/__init__.py
+RefactoringTool: Refactoring django_select2/templatetags/django_select2_tags.py
+RefactoringTool: Refactored django_select2/templatetags/django_select2_tags.py
+RefactoringTool: Wrote changes to django_select2/templatetags/django_select2_tags.py
+RefactoringTool: Descending into django_select2/templatetags/__pycache__
+RefactoringTool: Files that were modified:
+RefactoringTool: django_select2/__init__.py
+RefactoringTool: django_select2/db_client.py
+RefactoringTool: django_select2/fields.py
+RefactoringTool: django_select2/media.py
+RefactoringTool: django_select2/memcache_client.py
+RefactoringTool: django_select2/memcache_wrapped_db_client.py
+RefactoringTool: django_select2/models.py
+RefactoringTool: django_select2/urls.py
+RefactoringTool: django_select2/util.py
+RefactoringTool: django_select2/views.py
+RefactoringTool: django_select2/widgets.py
+RefactoringTool: django_select2/templatetags/__init__.py
+RefactoringTool: django_select2/templatetags/django_select2_tags.py

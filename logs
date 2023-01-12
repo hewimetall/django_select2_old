@@ -1,0 +1,114 @@
+--- django_select2/__init__.py	(original)
++++ django_select2/__init__.py	(refactored)
+@@ -76,7 +76,7 @@
+ .. _Read more: http://blog.applegrew.com/2012/08/django-select2/
+ 
+ """
+-from __future__ import absolute_import, unicode_literals
++
+ 
+ import logging
+ logger = logging.getLogger(__name__)
+--- django_select2/db_client.py	(original)
++++ django_select2/db_client.py	(refactored)
+@@ -1,5 +1,5 @@
+ # -*- coding:utf-8 -*-
+-from __future__ import absolute_import, unicode_literals
++
+ 
+ from .models import KeyMap
+ 
+--- django_select2/fields.py	(original)
++++ django_select2/fields.py	(refactored)
+@@ -2,7 +2,7 @@
+ """
+ Contains all the Django fields for Select2.
+ """
+-from __future__ import absolute_import, unicode_literals
++
+ 
+ import copy
+ import logging
+--- django_select2/memcache_client.py	(original)
++++ django_select2/memcache_client.py	(refactored)
+@@ -1,5 +1,5 @@
+ # -*- coding:utf-8 -*-
+-from __future__ import absolute_import, unicode_literals
++
+ 
+ from django.utils.six import binary_type
+ 
+--- django_select2/memcache_wrapped_db_client.py	(original)
++++ django_select2/memcache_wrapped_db_client.py	(refactored)
+@@ -1,5 +1,5 @@
+ # -*- coding:utf-8 -*-
+-from __future__ import absolute_import, unicode_literals
++
+ 
+ 
+ class Client(object):
+--- django_select2/models.py	(original)
++++ django_select2/models.py	(refactored)
+@@ -1,5 +1,5 @@
+ # -*- coding:utf-8 -*-
+-from __future__ import absolute_import, unicode_literals
++
+ 
+ from django.db import models
+ from django.utils.encoding import force_text, python_2_unicode_compatible
+--- django_select2/urls.py	(original)
++++ django_select2/urls.py	(refactored)
+@@ -1,5 +1,5 @@
+ # -*- coding:utf-8 -*-
+-from __future__ import absolute_import, unicode_literals
++
+ 
+ from django.conf.urls import patterns, url
+ 
+--- django_select2/util.py	(original)
++++ django_select2/util.py	(refactored)
+@@ -1,5 +1,5 @@
+ # -*- coding:utf-8 -*-
+-from __future__ import absolute_import, unicode_literals
++
+ 
+ import datetime
+ import hashlib
+--- django_select2/views.py	(original)
++++ django_select2/views.py	(refactored)
+@@ -1,5 +1,5 @@
+ # -*- coding:utf-8 -*-
+-from __future__ import absolute_import, unicode_literals
++
+ 
+ import json
+ 
+--- django_select2/widgets.py	(original)
++++ django_select2/widgets.py	(refactored)
+@@ -2,7 +2,7 @@
+ """
+ Contains all the Django widgets for Select2.
+ """
+-from __future__ import absolute_import, unicode_literals
++
+ 
+ import json
+ import logging
+@@ -105,7 +105,7 @@
+         self.options = dict(self.options)
+         select2_options = kwargs.pop('select2_options', None)
+         if select2_options:
+-            for name, value in select2_options.items():
++            for name, value in list(select2_options.items()):
+                 self.options[name] = value
+         self.init_options()
+ 
+--- django_select2/templatetags/django_select2_tags.py	(original)
++++ django_select2/templatetags/django_select2_tags.py	(refactored)
+@@ -1,5 +1,5 @@
+ # -*- coding:utf-8 -*-
+-from __future__ import absolute_import, unicode_literals
++
+ 
+ from django import template
+ 
