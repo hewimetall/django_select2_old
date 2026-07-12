@@ -1,12 +1,10 @@
 # -*- coding:utf-8 -*-
 
 
-from django.conf.urls import patterns, url
+from django.urls import path
 
 from .views import AutoResponseView
 
-urlpatterns = patterns(
-    "",
-    url(r"^fields/auto.json$",
-        AutoResponseView.as_view(), name="django_select2_central_json"),
-)
+urlpatterns = [
+    path("fields/auto.json", AutoResponseView.as_view(), name="django_select2_central_json"),
+]

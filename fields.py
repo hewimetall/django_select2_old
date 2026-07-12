@@ -12,9 +12,8 @@ from django.core import validators
 from django.core.exceptions import ValidationError
 from django.db.models import Q
 from django.forms.models import ModelChoiceIterator
-from django.utils import six
-from django.utils.encoding import force_text, smart_text
-from django.utils.translation import ugettext_lazy as _
+from django.utils.encoding import force_str, smart_str
+from django.utils.translation import gettext_lazy as _
 
 from . import util
 from .util import extract_some_key_val
@@ -176,7 +175,7 @@ class ModelResultJsonMixin(object):
         :return: The label string.
         :rtype: :py:obj:`unicode`
         """
-        return smart_text(obj)
+        return smart_str(obj)
 
     def extra_data_from_instance(self, obj):
         """
@@ -403,8 +402,9 @@ class ModelChoiceFieldMixin(QuerysetChoiceMixin):
         # This filters out kwargs not supported by Field but are still passed as it is required
         # by other codes. If new args are added to Field then make sure they are added here too.
         kargs = extract_some_key_val(kwargs, [
-            'empty_label', 'cache_choices', 'required', 'label', 'initial', 'help_text',
-            'validators', 'localize',
+            'empty_label', 'required', 'label', 'initial', 'help_text',
+            'validators', 'localize', 'error_messages', 'show_hidden_initial',
+            'disabled', 'limit_choices_to', 'blank',
             ])
         kargs['widget'] = kwargs.pop('widget', getattr(self, 'widget', None))
         kargs['to_field_name'] = kwargs.pop('to_field_name', 'pk')
@@ -416,7 +416,7 @@ class ModelChoiceFieldMixin(QuerysetChoiceMixin):
 
         super(ModelChoiceFieldMixin, self).__init__(queryset, **kargs)
 
-        if hasattr(self, 'set_placeholder'):
+        if hasattr(self.widget, 'set_placeholder'):
             self.widget.set_placeholder(self.empty_label)
 
     def _get_queryset(self):
@@ -431,11 +431,11 @@ class ModelChoiceFieldMixin(QuerysetChoiceMixin):
 
 
 class ModelChoiceField(ModelChoiceFieldMixin, forms.ModelChoiceField):
-    queryset = property(ModelChoiceFieldMixin._get_queryset, forms.ModelChoiceField._set_queryset)
+    pass
 
 
 class ModelMultipleChoiceField(ModelChoiceFieldMixin, forms.ModelMultipleChoiceField):
-    queryset = property(ModelChoiceFieldMixin._get_queryset, forms.ModelMultipleChoiceField._set_queryset)
+    pass
 
 
 # ## Light Fields specialized for Models ##
@@ -488,11 +488,12 @@ class HeavySelect2FieldBaseMixin(object):
 
         """
         data_view = kwargs.pop('data_view', None)
+        data_url = kwargs.pop('data_url', None)
         choices = kwargs.pop('choices', [])
 
         kargs = {}
         if kwargs.get('widget', None) is None:
-            kargs['widget'] = self.widget(data_view=data_view)
+            kargs['widget'] = self.widget(data_view=data_view, data_url=data_url)
 
         kargs.update(kwargs)
         super(HeavySelect2FieldBaseMixin, self).__init__(*args, **kargs)
@@ -531,7 +532,9 @@ class HeavyChoiceField(ChoiceMixin, forms.Field):
     "Sub-classes can set this other value if needed."
 
     def __init__(self, *args, **kwargs):
+        choices = kwargs.pop('choices', ())
         super(HeavyChoiceField, self).__init__(*args, **kwargs)
+        self.choices = choices
         # Widget should have been instantiated by now.
         self.widget.field = self
 
@@ -550,9 +553,9 @@ class HeavyChoiceField(ChoiceMixin, forms.Field):
             raise ValidationError(self.error_messages['invalid_choice'] % {'value': value})
 
     def valid_value(self, value):
-        uvalue = smart_text(value)
+        uvalue = smart_str(value)
         for k, v in self.choices:
-            if uvalue == smart_text(k):
+            if uvalue == smart_str(k):
                 return True
         return self.validate_value(value)
 
@@ -562,7 +565,7 @@ class HeavyChoiceField(ChoiceMixin, forms.Field):
 
         Sub-classes should override this if they do not want Unicode values.
         """
-        return smart_text(value)
+        return smart_str(value)
 
     def validate_value(self, value):
         """
@@ -724,7 +727,7 @@ class HeavyModelSelect2TagField(HeavySelect2FieldBaseMixin, ModelMultipleChoiceF
         elif not self.required and not value:
             return []
         if not isinstance(value, (list, tuple)):
-            raise ValidationError(self.error_messages['list'])
+            raise ValidationError(self.error_messages.get('list', self.error_messages['invalid_list']))
         new_values = []
         key = self.to_field_name or 'pk'
         for pk in list(value):
@@ -734,8 +737,11 @@ class HeavyModelSelect2TagField(HeavySelect2FieldBaseMixin, ModelMultipleChoiceF
                 value.remove(pk)
                 new_values.append(pk)
 
+        created_values = set()
         for val in new_values:
-            value.append(self.create_new_value(force_text(val)))
+            created_value = self.create_new_value(force_str(val))
+            value.append(created_value)
+            created_values.add(force_str(created_value))
 
         # Usually new_values will have list of new tags, but if the tag is
         # suppose of type int then that could be interpreted as valid pk
@@ -743,10 +749,10 @@ class HeavyModelSelect2TagField(HeavySelect2FieldBaseMixin, ModelMultipleChoiceF
         # Below we find such tags and create them, by check if the pk
         # actually exists.
         qs = self.queryset.filter(**{'%s__in' % key: value})
-        pks = set([force_text(getattr(o, key)) for o in qs])
+        pks = set([force_str(getattr(o, key)) for o in qs])
         for i in range(0, len(value)):
-            val = force_text(value[i])
-            if val not in pks:
+            val = force_str(value[i])
+            if val not in pks and val not in created_values:
                 value[i] = self.create_new_value(val)
         # Since this overrides the inherited ModelChoiceField.clean
         # we run custom validators here
@@ -826,10 +832,10 @@ class AutoSelect2TagField(AutoViewFieldMixin, HeavySelect2TagField):
 # ## Heavy field, specialized for Model, that uses central AutoView ##
 
 
-class AutoModelSelect2Field(six.with_metaclass(UnhideableQuerysetType,
-                                               ModelResultJsonMixin,
-                                               AutoViewFieldMixin,
-                                               HeavyModelSelect2ChoiceField)):
+class AutoModelSelect2Field(ModelResultJsonMixin,
+                            AutoViewFieldMixin,
+                            HeavyModelSelect2ChoiceField,
+                            metaclass=UnhideableQuerysetType):
     """
     Auto Heavy Select2 field, specialized for Models.
 
@@ -840,10 +846,10 @@ class AutoModelSelect2Field(six.with_metaclass(UnhideableQuerysetType,
     widget = AutoHeavySelect2Widget
 
 
-class AutoModelSelect2MultipleField(six.with_metaclass(UnhideableQuerysetType,
-                                                       ModelResultJsonMixin,
-                                                       AutoViewFieldMixin,
-                                                       HeavyModelSelect2MultipleChoiceField)):
+class AutoModelSelect2MultipleField(ModelResultJsonMixin,
+                                    AutoViewFieldMixin,
+                                    HeavyModelSelect2MultipleChoiceField,
+                                    metaclass=UnhideableQuerysetType):
     """
     Auto Heavy Select2 field for multiple choices, specialized for Models.
 
@@ -854,10 +860,10 @@ class AutoModelSelect2MultipleField(six.with_metaclass(UnhideableQuerysetType,
     widget = AutoHeavySelect2MultipleWidget
 
 
-class AutoModelSelect2TagField(six.with_metaclass(UnhideableQuerysetType,
-                                                  ModelResultJsonMixin,
-                                                  AutoViewFieldMixin,
-                                                  HeavyModelSelect2TagField)):
+class AutoModelSelect2TagField(ModelResultJsonMixin,
+                               AutoViewFieldMixin,
+                               HeavyModelSelect2TagField,
+                               metaclass=UnhideableQuerysetType):
     """
     Auto Heavy Select2 field for tagging, specialized for Models.
 

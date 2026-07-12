@@ -1,0 +1,67 @@
+[build-system]
+requires = ["setuptools>=80", "wheel>=0.46"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "django-select2-old"
+version = "4.3.2"
+description = "Legacy django-select2 widgets and fields updated for modern Django."
+readme = "README.md"
+requires-python = ">=3.10"
+license = {text = "BSD-3-Clause"}
+authors = [
+    {name = "django-select2 contributors"},
+]
+dependencies = [
+    "Django>=5.2,<6.0",
+]
+classifiers = [
+    "Framework :: Django",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+]
+
+[project.optional-dependencies]
+memcache = [
+    "python-memcached>=1.62",
+]
+dev = [
+    "pip-audit>=2.10.1",
+    "pytest>=8.4",
+    "pytest-cov>=7.0",
+    "python-memcached>=1.62",
+]
+
+[tool.setuptools]
+packages = ["django_select2", "django_select2.templatetags"]
+include-package-data = true
+
+[tool.setuptools.package-dir]
+django_select2 = "."
+
+[tool.setuptools.package-data]
+django_select2 = [
+    "static/django_select2/css/*",
+    "static/django_select2/js/*",
+]
+
+[tool.pytest.ini_options]
+addopts = "--cov=django_select2 --cov-report=term-missing --cov-fail-under=93"
+testpaths = ["tests"]
+pythonpath = [".."]
+
+[tool.coverage.run]
+source = ["django_select2"]
+omit = [
+    "tests/*",
+]
+
+[tool.coverage.report]
+show_missing = true
+skip_covered = false
+exclude_lines = [
+    "raise NotImplementedError",
+    "if __name__ == .__main__.:",
+]
