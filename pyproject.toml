@@ -53,7 +53,6 @@ testpaths = ["tests"]
 pythonpath = [".."]
 
 [tool.coverage.run]
-branch = true
 source = ["django_select2"]
 omit = [
     "tests/*",

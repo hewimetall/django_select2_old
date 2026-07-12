@@ -13,8 +13,6 @@ def test_db_client_set_creates_and_updates(monkeypatch):
         pass
 
     class FakeKeyMap:
-        DoesNotExist = DoesNotExist
-
         def __init__(self):
             self.saved = False
 
@@ -28,6 +26,7 @@ def test_db_client_set_creates_and_updates(monkeypatch):
                 raise DoesNotExist
             return store[key]
 
+    FakeKeyMap.DoesNotExist = DoesNotExist
     store = {}
     FakeKeyMap.objects = Manager()
     monkeypatch.setattr(db_client, "KeyMap", FakeKeyMap)

@@ -10,8 +10,9 @@ class Client(object):
         This method is used to set a new value
         in the db.
         """
-        o = self.get(key)
-        if o is None:
+        try:
+            o = KeyMap.objects.get(key=key)
+        except KeyMap.DoesNotExist:
             o = KeyMap()
             o.key = key
 

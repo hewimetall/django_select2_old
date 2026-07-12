@@ -305,6 +305,9 @@ class MultipleSelect2HiddenInput(forms.TextInput):
             s += self.render_js_script(jscode)
         return mark_safe(s)
 
+    def render_js_script(self, inner_code):
+        return Select2Mixin.render_js_script(self, inner_code)
+
     def value_from_datadict(self, data, files, name):
         if isinstance(data, MultiValueDict) or hasattr(data, 'getlist'):
             return data.getlist(name)

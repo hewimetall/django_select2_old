@@ -1,4 +1,5 @@
 from django.utils.safestring import SafeString
+from django.conf import settings
 
 from django_select2 import media
 from django_select2.templatetags import django_select2_tags as tags
@@ -46,6 +47,18 @@ def test_css_libs_cover_bootstrap_and_light_modes(monkeypatch):
     ]
 
     monkeypatch.setattr(media, "BOOTSTRAP", False)
+    monkeypatch.setattr(media, "DEBUG", True)
+    monkeypatch.setattr(settings, "DEBUG", True)
+    assert media.get_select2_css_libs(light=True) == [
+        "/static/django_select2/css/select2.css",
+    ]
+    assert media.get_select2_css_libs(light=False) == [
+        "/static/django_select2/css/select2.css",
+        "/static/django_select2/css/extra.css",
+    ]
+
+    monkeypatch.setattr(media, "DEBUG", False)
+    monkeypatch.setattr(settings, "DEBUG", False)
     assert media.get_select2_css_libs(light=True) == [
         "/static/django_select2/css/select2.min.css",
     ]
@@ -63,5 +76,6 @@ def test_template_tags_return_safe_html():
     assert isinstance(css, SafeString)
     assert isinstance(combined, SafeString)
     assert '<script type="text/javascript" src="/static/django_select2/js/select2.min.js"></script>' in js
+    assert "heavy_data.min.js" in tags.import_js(light=0)
     assert '<link href="/static/django_select2/css/select2.min.css" rel="stylesheet">' in css
     assert "\n" in combined

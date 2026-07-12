@@ -416,7 +416,7 @@ class ModelChoiceFieldMixin(QuerysetChoiceMixin):
 
         super(ModelChoiceFieldMixin, self).__init__(queryset, **kargs)
 
-        if hasattr(self, 'set_placeholder'):
+        if hasattr(self.widget, 'set_placeholder'):
             self.widget.set_placeholder(self.empty_label)
 
     def _get_queryset(self):
@@ -488,11 +488,12 @@ class HeavySelect2FieldBaseMixin(object):
 
         """
         data_view = kwargs.pop('data_view', None)
+        data_url = kwargs.pop('data_url', None)
         choices = kwargs.pop('choices', [])
 
         kargs = {}
         if kwargs.get('widget', None) is None:
-            kargs['widget'] = self.widget(data_view=data_view)
+            kargs['widget'] = self.widget(data_view=data_view, data_url=data_url)
 
         kargs.update(kwargs)
         super(HeavySelect2FieldBaseMixin, self).__init__(*args, **kargs)
@@ -531,7 +532,9 @@ class HeavyChoiceField(ChoiceMixin, forms.Field):
     "Sub-classes can set this other value if needed."
 
     def __init__(self, *args, **kwargs):
+        choices = kwargs.pop('choices', ())
         super(HeavyChoiceField, self).__init__(*args, **kwargs)
+        self.choices = choices
         # Widget should have been instantiated by now.
         self.widget.field = self
 
@@ -724,7 +727,7 @@ class HeavyModelSelect2TagField(HeavySelect2FieldBaseMixin, ModelMultipleChoiceF
         elif not self.required and not value:
             return []
         if not isinstance(value, (list, tuple)):
-            raise ValidationError(self.error_messages['list'])
+            raise ValidationError(self.error_messages.get('list', self.error_messages['invalid_list']))
         new_values = []
         key = self.to_field_name or 'pk'
         for pk in list(value):
@@ -734,8 +737,11 @@ class HeavyModelSelect2TagField(HeavySelect2FieldBaseMixin, ModelMultipleChoiceF
                 value.remove(pk)
                 new_values.append(pk)
 
+        created_values = set()
         for val in new_values:
-            value.append(self.create_new_value(force_str(val)))
+            created_value = self.create_new_value(force_str(val))
+            value.append(created_value)
+            created_values.add(force_str(created_value))
 
         # Usually new_values will have list of new tags, but if the tag is
         # suppose of type int then that could be interpreted as valid pk
@@ -746,7 +752,7 @@ class HeavyModelSelect2TagField(HeavySelect2FieldBaseMixin, ModelMultipleChoiceF
         pks = set([force_str(getattr(o, key)) for o in qs])
         for i in range(0, len(value)):
             val = force_str(value[i])
-            if val not in pks:
+            if val not in pks and val not in created_values:
                 value[i] = self.create_new_value(val)
         # Since this overrides the inherited ModelChoiceField.clean
         # we run custom validators here

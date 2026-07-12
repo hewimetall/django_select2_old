@@ -1,4 +1,5 @@
 import json
+import logging
 import threading
 
 import pytest
@@ -97,6 +98,54 @@ def test_random_registration_path(monkeypatch):
 
     assert field.field_id.startswith("0:")
     assert util.get_field(field.field_id) is field
+
+
+def test_register_field_duplicate_and_remote_support(monkeypatch, caplog):
+    caplog.set_level(logging.INFO)
+
+    class RemoteServer:
+        def __init__(self):
+            self.values = {}
+
+        def set(self, key, value):
+            self.values[key] = value
+
+    remote = RemoteServer()
+    monkeypatch.setattr(util, "ENABLE_MULTI_PROCESS_SUPPORT", True)
+    monkeypatch.setattr(util, "remote_server", remote, raising=False)
+
+    first = DummyAutoField(auto_id="remote")
+    second_id = util.register_field("remote", first)
+
+    assert second_id == first.field_id
+    assert remote.values[first.field_id] == "remote"
+    assert "Multi process support is enabled" in caplog.text
+
+
+def test_get_field_remote_lookup_paths(monkeypatch, caplog):
+    class RemoteServer:
+        def __init__(self, values):
+            self.values = values
+
+        def get(self, key):
+            return self.values.get(key)
+
+    local = DummyAutoField(auto_id="local")
+    util.__dict__["__id_store"].clear()
+    util.__dict__["__field_store"]["local"] = local.field_id
+    util.__dict__["__id_store"][local.field_id] = local
+
+    monkeypatch.setattr(util, "ENABLE_MULTI_PROCESS_SUPPORT", True)
+    monkeypatch.setattr(util, "remote_server", RemoteServer({"remote-id": "local"}), raising=False)
+    assert util.get_field("remote-id") is local
+
+    util.__dict__["__field_store"]["broken"] = ""
+    monkeypatch.setattr(util, "remote_server", RemoteServer({"broken-id": "broken"}), raising=False)
+    assert util.get_field("broken-id") is None
+
+    monkeypatch.setattr(util, "remote_server", RemoteServer({}), raising=False)
+    assert util.get_field("missing-id") is None
+    assert "Unknown id" in caplog.text
 
 
 def test_json_response_mixin_serializes_context():
