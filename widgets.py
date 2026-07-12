@@ -10,12 +10,11 @@ import re
 from itertools import chain
 
 from django import forms
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.core.validators import EMPTY_VALUES
-from django.utils.datastructures import MergeDict, MultiValueDict
-from django.utils.encoding import force_text
+from django.utils.datastructures import MultiValueDict
+from django.utils.encoding import force_str
 from django.utils.safestring import mark_safe
-from django.utils.six import text_type
 
 from django_select2.media import (get_select2_css_libs,
                                   get_select2_heavy_js_libs,
@@ -143,7 +142,7 @@ class Select2Mixin(object):
         if options.get('allowClear', None) is not None:
             options['allowClear'] = not self.is_required
         if options.get('placeholder'):
-            options['placeholder'] = force_text(options['placeholder'])
+            options['placeholder'] = force_str(options['placeholder'])
         return options
 
     def render_js_code(self, id_, *args):
@@ -190,7 +189,7 @@ class Select2Mixin(object):
         js += '$(hashedSelector).select2(%s);' % (options)
         return js
 
-    def render(self, name, value, attrs=None, choices=()):
+    def render(self, name, value, attrs=None, renderer=None, choices=()):
         """
         Renders this widget. HTML and JS code blocks all are rendered by this.
 
@@ -198,13 +197,11 @@ class Select2Mixin(object):
         :rtype: :py:obj:`unicode`
         """
 
-        args = [name, value, attrs]
-        if choices:
-            args.append(choices)
-
-        s = text_type(super(Select2Mixin, self).render(*args))  # Thanks to @ouhouhsami Issue#1
+        s = str(super(Select2Mixin, self).render(
+            name, value, attrs, renderer=renderer
+        ))  # Thanks to @ouhouhsami Issue#1
         s += self.media.render()
-        final_attrs = self.build_attrs(attrs)
+        final_attrs = self.build_attrs(self.attrs, attrs)
         id_ = final_attrs.get('id', None)
         s += self.render_js_code(id_, name, value, attrs, choices)
 
@@ -242,15 +239,20 @@ class Select2Widget(Select2Mixin, forms.Select):
     def init_options(self):
         self.options.pop('multiple', None)
 
-    def render_options(self, choices, selected_choices):
-        all_choices = chain(self.choices, choices)
+    def optgroups(self, name, value, attrs=None):
+        original_choices = self.choices
+        choices = list(original_choices)
         if not self.is_required \
-                and len([value for value, txt in all_choices if value == '']) == 0:
+                and len([choice_value for choice_value, txt in choices if choice_value == '']) == 0:
             # Checking if list already has empty choice
             # as in the case of Model based Light fields.
-            choices = list(choices)
             choices.append(('', '', ))  # Adding an empty choice
-        return super(Select2Widget, self).render_options(choices, selected_choices)
+            self.choices = choices
+            try:
+                return super(Select2Widget, self).optgroups(name, value, attrs=attrs)
+            finally:
+                self.choices = original_choices
+        return super(Select2Widget, self).optgroups(name, value, attrs=attrs)
 
 
 class Select2MultipleWidget(Select2Mixin, forms.SelectMultiple):
@@ -288,9 +290,12 @@ class MultipleSelect2HiddenInput(forms.TextInput):
     would be available as list.
     """
 
-    def render(self, name, value, attrs=None, choices=()):
-        attrs = self.build_attrs(attrs, multiple='multiple')
-        s = text_type(super(MultipleSelect2HiddenInput, self).render(name, "", attrs))
+    def render(self, name, value, attrs=None, renderer=None, choices=()):
+        attrs = self.build_attrs(self.attrs, attrs)
+        attrs['multiple'] = 'multiple'
+        s = str(super(MultipleSelect2HiddenInput, self).render(
+            name, "", attrs, renderer=renderer
+        ))
         id_ = attrs.get('id', None)
         if id_:
             jscode = ''
@@ -301,7 +306,7 @@ class MultipleSelect2HiddenInput(forms.TextInput):
         return mark_safe(s)
 
     def value_from_datadict(self, data, files, name):
-        if isinstance(data, (MultiValueDict, MergeDict)):
+        if isinstance(data, MultiValueDict) or hasattr(data, 'getlist'):
             return data.getlist(name)
         return data.get(name, None)
 
@@ -312,8 +317,8 @@ class MultipleSelect2HiddenInput(forms.TextInput):
             data = []
         if len(initial) != len(data):
             return True
-        initial_set = set([force_text(value) for value in initial])
-        data_set = set([force_text(value) for value in data])
+        initial_set = set([force_str(value) for value in initial])
+        data_set = set([force_str(value) for value in data])
         return data_set != initial_set
 
     @property
@@ -420,7 +425,7 @@ class HeavySelect2Mixin(Select2Mixin):
         :return: The rendered JS array code.
         :rtype: :py:obj:`unicode`
         """
-        selected_choices = list(force_text(v) for v in selected_choices)
+        selected_choices = list(force_str(v) for v in selected_choices)
         txts = []
         all_choices = choices if choices else []
         choices_dict = dict()
@@ -431,8 +436,8 @@ class HeavySelect2Mixin(Select2Mixin):
             self_choices.set_extra_filter(**{'%s__in' % self.field.get_pk_field_name(): selected_choices})
 
         for val, txt in chain(self_choices, all_choices):
-            val = force_text(val)
-            choices_dict[val] = force_text(txt)
+            val = force_str(val)
+            choices_dict[val] = force_str(txt)
 
         for val in selected_choices:
             try:
